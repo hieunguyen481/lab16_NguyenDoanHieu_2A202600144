@@ -13,13 +13,14 @@ def main(dataset: str = "data/hotpot_100.json", out_dir: str = "outputs/sample_r
     examples = load_dataset(dataset)
     react = ReActAgent()
     reflexion = ReflexionAgent(max_attempts=reflexion_attempts)
-    react_records = [react.run(example) for example in examples]
-    reflexion_records = [reflexion.run(example) for example in examples]
+    from rich.progress import track
+    react_records = [react.run(example) for example in track(examples, description="Running ReAct Agent...")]
+    reflexion_records = [reflexion.run(example) for example in track(examples, description="Running Reflexion Agent...")]
     all_records = react_records + reflexion_records
     out_path = Path(out_dir)
     save_jsonl(out_path / "react_runs.jsonl", react_records)
     save_jsonl(out_path / "reflexion_runs.jsonl", reflexion_records)
-    report = build_report(all_records, dataset_name=Path(dataset).name, mode="mock")
+    report = build_report(all_records, dataset_name=Path(dataset).name, mode="real")
     json_path, md_path = save_report(report, out_path)
     print(f"[green]Saved[/green] {json_path}")
     print(f"[green]Saved[/green] {md_path}")
